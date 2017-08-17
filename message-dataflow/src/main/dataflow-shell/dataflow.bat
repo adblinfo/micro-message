@@ -1,0 +1,1 @@
+java -jar spring-cloud-dataflow-shell-1.2.3.RELEASE.jar

@@ -1,0 +1,15 @@
+message from file
+bulk import using spring cloud dataflow with message brocker rabbit mq
+message1
+message2
+message 3
+message4
+message5
+message6
+message7
+message8
+asdfadsf
+asfasdf
+afadsf
+afasdfsa
+afdsfas

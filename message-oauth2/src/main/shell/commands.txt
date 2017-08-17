@@ -1,0 +1,18 @@
+encode client_id:clientsecret
+set Accept and authorization header
+make post request to (http://localhost:9191/uaa/oauth/token) by providing
+Accept application/json
+Authorization Basic YWNtZTphY21lc2VjcmV0
+
+set Body as
+
+username ad
+password spring
+grant_type password
+scope openid
+client_secret acmesecret
+client_id acme
+
+make curl to ensure the generated token works
+
+curl -H"authorization: bearer c1653a34-fc06-4696-bbc9-2d0d6e4a260b" http://localhost:9999/messages/messages
