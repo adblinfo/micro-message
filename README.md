@@ -75,6 +75,27 @@ For issuing tokens and authorize requests.
 
 While the backing services in the middle layer are still considered to be microservices, they solve a set of concerns that are purely operational and security-related. The business logic of this application sits almost entirely in our bottom layer.
 
+## Streams
+
+While REST is an easy, powerful approach to building services, it doesn't provide much in the way of guarantees about state. A failed write needs to be retried, requiring more work of the client. Messaging, on the other hand, guarantees that eventually the intended write will be processed. Eventual consistency works most of the time; even banks don't use distributed transactions! In this lab, we'll look at Spring Cloud Stream which builds atop Spring Integration and the messaging subsystem from Spring XD. Spring Cloud Stream provides the notion of binders that automatically wire up message egress and ingress given a valid connection factory and an agreed upon destination (e.g.: app-messages or items).
+
+start ./bin/rabbitmq.sh.
+This will install a RabbitMQ instance that is available at $DOCKER_IP. You'll also be able to access the console, which is available http://$DOCKER_IP:15672. The username and password to access the console are guest/guest.
+add org.springframework.cloud:spring-cloud-starter-stream-rabbit to both the reservation-client and reservation-service.
+Sources - like water from a faucet - describe where messages may come from. In our example, messages come from the reservation-client that wishes to write messages to the reservation-service from the API gateway.
+add @EnableBinding(Source.class) to the reservation-client DemoApplication
+create a new REST endpoint - a POST endpoint that accepts a @RequestBody Reservation reservation - in the ReservationApiGatewayRestController to accept new reservations
+observe that the Source.class describes one or more Spring MessageChannels which are themselves annotated with useful qualifiers like @Output("output").
+in the new endpoint, inject the Spring MessageChannel and qualify it with @Output("output") - the same one as in the Source.class definition.
+use the MessageChannel to send a message to the reservation-service. Connect the two modules through a agreed upon name, which we'll call reservations.
+Observe that this is specified in the config server for us in the reservation-service module: spring.cloud.stream.bindings.output=reservations. output is arbitrary and refers to the (arbitrary) channel of the same name described and referenced from the Source.class definition.
+Sinks receive messages that flow to this service (like the kitchen sink into which water from the faucet flows).
+add @EnableBinding(Sink.class) to the reservation-service DemoApplication
+observe that the Sink.class describes one or more Spring MessageChannels which are themselves annotated with useful qualifiers like @Input("input").
+create a new @MessagingEndpoint that has a @ServiceActivator-annotated handler method to receive messages whose payload is of type String, the reservationName from the reservation-client.
+use the String to save new Reservations using an injected ReservationRepository
+Observe that this is specified in the config server for us in the reservation-client module: spring.cloud.stream.bindings.input=reservations. input is arbitrary and refers to the (arbitrary) channel of the same name described in the Sink.class definition.
+
 ### Message Service
 
 Message are exposed as REST resources using Spring Data RESTs capability to automatically expose Spring Data JPA repositories contained in the application.
@@ -102,8 +123,20 @@ $ cd micro-message/message-eureka
 $ gradlew bootRun
 ```
 ```bash
-$ cd micro-ecommerce/microservices-authserver
-$ mvn spring-boot:run
+$ cd micro-message/message-oauth2
+$ gradlew bootRun
+```
+```bash
+$ cd micro-message/message-hystrix-dashboard
+$ gradlew bootRun
+```
+```bash
+$ cd micro-message/message-zipkin
+$ gradlew bootRun
+```
+```bash
+$ cd micro-message/message-dataflow
+$ gradlew bootRun
 ```
 ...
 - Repeat this for all other services that you want to run. Please note that the order is important (config-server, erureka, authserver)
